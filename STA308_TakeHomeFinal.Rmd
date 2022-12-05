@@ -1,0 +1,95 @@
+---
+title: "STA 308 -- Final Exam"
+author: "Matt Fry"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+# Data Task
+## The file gasoline_prices.csv Download gasoline_prices.csvcontains the state 
+## average gasoline prices for each state (and Washington, DC) in the United 
+## States on November 29, 2022 according to AAA. The file state_abb_codes.csv 
+## state_abb_codes.csvprovides a mapping of states & districts in the United 
+## States with their abbreviations, and the file censusRegions.csv 
+## censusRegions.csvprovides a mapping of states and districts based on 
+## census regions. 
+
+## For each of the census regions, compute the mean state (that is, remove 
+## Washington, D.C.) percentage increase (difference) in the price of Diesel 
+## vs Regular gasoline ( (Diesel - Regular)/Regular*100), along with the 
+## corresponding standard deviation and coefficient of variation . The result 
+## of your program should be a table of numbers with 4 rows (corresponding 
+## to the four census regions) and 3 columns of calculated values (the mean, 
+## standard deviation and coefficient of variation) [note: your output may 
+## be 4 columns if you include/consider census regions).
+
+# Takeaways from instructions:
+## Compute the mean percentage increase in the price of Regular vs Diesel by state
+## Remove Washington DC
+## Group states by census region
+## Also compute standard deviation and coefficient of variation
+
+## Website for fuel prices by state: "https://tjfisher19.github.io/data/gasoline_prices.csv"
+## Website for state abbreviations: "https://tjfisher19.github.io/data/state_abb_codes.csv"
+## Website for census regions: "https://tjfisher19.github.io/data/censusRegions.csv"
+
+```{r}
+## Reading in all three data sets
+FuelPriceStateDF <- read_csv("https://tjfisher19.github.io/data/gasoline_prices.csv")
+StateAbbrevsDF <- read_csv("https://tjfisher19.github.io/data/state_abb_codes.csv")
+CensusRegionsDF <- read_csv("https://tjfisher19.github.io/data/censusRegions.csv")
+```
+
+
+```{r}
+## Now that I have read in the data, I am going to select the data I need to 
+##  reduce the unneccessary information in my final data frame and find the 
+##  price difference between Diesel and regular
+FuelPriceStateDF <- FuelPriceStateDF %>%
+  mutate(Pct_PriceDiff = (Diesel - Regular)/Regular*100) %>%
+  select(State, Pct_PriceDiff) %>%
+  filter(State != "District of Columbia") ## removing Washington DC
+StateAbbrevsDF <- StateAbbrevsDF %>%
+  select(State, Code)
+```
+
+```{r}
+## Now that I have the data I NEED, I am going to merge datasets to have the 
+##  census regions and provide summary statistics by region
+
+StatesWithCodes <- merge(FuelPriceStateDF, StateAbbrevsDF) %>%
+  select(Code, Pct_PriceDiff)
+PriceDiffWithRegion <- merge(StatesWithCodes, CensusRegionsDF, 
+                           by.x = "Code", by.y = "State")
+## Now that the datasets are merged, I need to group the states by region
+##  in order to find the average percent difference in the cost of 
+##  Diesel vs Regular by region, as well as the standard deviation and 
+##  coefficient of variation
+
+StatsByRegion <- PriceDiffWithRegion %>%
+  group_by(Region) %>%
+  summarize(RegionalAvg = mean(Pct_PriceDiff), 
+            RegionalStdDev = sd(Pct_PriceDiff), 
+            RegionalCoeffOfVar = RegionalStdDev/RegionalAvg)
+print(StatsByRegion)
+## "RegionalAvg" is the average of the percent difference between Diesel and 
+## Regular by region
+## "RegionalStdDev" is the standard deviation of the percent difference 
+## by region
+## "RegionalCoeffOfVar" is the coefficient of variation by region --
+## coefficient of variation is the standard deviation/mean
+
+```
+
+
+
+
+
+
+
+
