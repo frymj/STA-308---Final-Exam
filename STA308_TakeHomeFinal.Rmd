@@ -75,7 +75,7 @@ StatsByRegion <- PriceDiffWithRegion %>%
   group_by(Region) %>%
   summarize(RegionalAvg = mean(Pct_PriceDiff), 
             RegionalStdDev = sd(Pct_PriceDiff), 
-            RegionalCoeffOfVar = RegionalStdDev/RegionalAvg)
+            RegionalCoeffOfVar = RegionalStdDev/RegionalAvg*100)
 print(StatsByRegion)
 ## "RegionalAvg" is the average of the percent difference between Diesel and 
 ## Regular by region
