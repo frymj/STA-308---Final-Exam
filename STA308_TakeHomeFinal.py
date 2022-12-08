@@ -52,7 +52,6 @@ CensusRegionsDF = pd.read_csv("https://tjfisher19.github.io/data/censusRegions.c
 ##  information in my final data frame and find the percent difference in 
 ##  price from Diesel to Regular
 
-
 FuelPriceStateDF = FuelPriceStateDF.loc[:, ['State', 'Regular', 'Diesel']]
 ## The above line selects the columns State, Regular, and Diesel
 
@@ -86,15 +85,19 @@ PriceDiffWithRegion = StatesWithCodes.merge(CensusRegionsDF,
 ##  allowing me to group by region, thereby allowing me to acquire statistics
 ##  based on region
 
-StatsByRegion = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": ["mean","std"]})
-## For the life of me, I could not figure out how to create a single data 
-##  frame with the aggregate mean, std, and coefficient of variation,
-##  below is the code I tried unsuccessfully
+StatsByRegion = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": ["mean", "std"]})
+
+cv = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "std"})/PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "mean"})*100
+cv = cv.assign(CoeffOfVar = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "std"})/PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "mean"})*100)
+cv = cv.loc[:, 'CoeffOfVar']
+## I'm sure there was a better way of finding and aggregating the Coefficient
+##  of Variation but after hours of trying I resorted to this and it finally
+##  worked. So, I merged the database "cv" with my StatsByRegion database for
+##  the desired final output (below).
+
+StatsByRegion = StatsByRegion.merge(cv, left_on = "Region", right_on = "Region")
+print(StatsByRegion)
 
 """
-StatsByRegion = PriceDiffWithRegion.assign[
-    RegionalMean = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "mean"}),
-    RegionalStdDev = PriceDiffWithRegion.groupby("Region").agg({"Pct_PriceDiff": "std"}),
-    RegionalCoeffVar = RegionalStdDev/RegionalMean]
+See you next semester Dr. Fisher. Don't do anything I wouldn't
 """
-
